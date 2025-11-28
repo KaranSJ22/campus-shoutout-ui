@@ -2,17 +2,22 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
 import { Heart, MessageCircle, Laugh, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ShoutOutType } from "@/components/ShoutOutCard";
+import { supabase } from "@/lib/supabase";
 
 const CreateShoutOut = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedType, setSelectedType] = useState<ShoutOutType | null>(null);
+  const [senderNickname, setSenderNickname] = useState("");
+  const [recipientName, setRecipientName] = useState("");
   const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const shoutOutTypes = [
     {
@@ -35,8 +40,9 @@ const CreateShoutOut = () => {
     },
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!selectedType) {
       toast({
         title: "Please select a type",
@@ -46,12 +52,32 @@ const CreateShoutOut = () => {
       return;
     }
     
-    // Submit logic will be implemented later
-    toast({
-      title: "ShoutOut posted! 🎉",
-      description: "Your message has been shared with the community.",
-    });
-    navigate("/");
+    setIsSubmitting(true);
+    
+    try {
+      const { error } = await supabase.from("shoutouts").insert({
+        sender_nickname: senderNickname,
+        recipient_name: recipientName,
+        message_content: message,
+        category: selectedType,
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "ShoutOut posted! 🎉",
+        description: "Your message has been shared with the community.",
+      });
+      navigate("/");
+    } catch (error: any) {
+      toast({
+        title: "Error posting ShoutOut",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -104,6 +130,31 @@ const CreateShoutOut = () => {
               </div>
 
               <div className="space-y-3">
+                <Label htmlFor="senderNickname" className="text-lg font-semibold">
+                  Your Nickname
+                </Label>
+                <Input
+                  id="senderNickname"
+                  placeholder="Enter your nickname"
+                  value={senderNickname}
+                  onChange={(e) => setSenderNickname(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="recipientName" className="text-lg font-semibold">
+                  Recipient Name (Optional)
+                </Label>
+                <Input
+                  id="recipientName"
+                  placeholder="Who is this for?"
+                  value={recipientName}
+                  onChange={(e) => setRecipientName(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-3">
                 <Label htmlFor="message" className="text-lg font-semibold">
                   Your Message
                 </Label>
@@ -124,8 +175,9 @@ const CreateShoutOut = () => {
                 type="submit"
                 size="lg"
                 className="w-full text-lg font-semibold"
+                disabled={isSubmitting}
               >
-                Post ShoutOut
+                {isSubmitting ? "Posting..." : "Post ShoutOut"}
               </Button>
             </form>
           </CardContent>
