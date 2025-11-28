@@ -12,19 +12,6 @@ const Navbar = () => {
             RIT ShoutOut
           </span>
         </Link>
-        
-        <div className="flex items-center gap-3">
-          <Link to="/login">
-            <Button variant="ghost" className="font-medium">
-              Login
-            </Button>
-          </Link>
-          <Link to="/signup">
-            <Button className="font-medium">
-              Sign Up
-            </Button>
-          </Link>
-        </div>
       </div>
     </nav>
   );
