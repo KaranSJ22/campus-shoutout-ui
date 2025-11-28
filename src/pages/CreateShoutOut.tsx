@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { Heart, MessageCircle, Laugh, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ShoutOutType } from "@/components/ShoutOutCard";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 const CreateShoutOut = () => {
   const navigate = useNavigate();
